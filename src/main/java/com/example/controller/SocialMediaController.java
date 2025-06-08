@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.entity.Account;
+import com.example.entity.Message;
 
-import antlr.collections.List;
+import java.util.List;
 import ch.qos.logback.core.joran.spi.DefaultClass;
 
 /**
@@ -26,44 +28,47 @@ public class SocialMediaController {
 
     @GetMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account account) {
-
+        return null;
     }
 
     @PostMapping("/login")
     public ResponseEntity<Account> login(@RequestBody Account loginInfo)
     {
-
+        return null;
     }
 
     @PostMapping("/messages")
     public ResponseEntity<Message> creatMessage(@RequestBody Message message)
     {
-
+        return null;
     }
 
     @GetMapping("/messages")
     public ResponseEntity<List<Message>> getAllMessages() {
-
+        return null;
     }
 
     @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getmessageByID(@PathVariable int messageId)
     {
-
+        return null;
     }
 
     @DeleteMapping("/messages/{messageId}")
     public ResponseEntity<Message> deleteMessage(@PathVariable int messageId)
     {
-
+        return null;
     }
 
     @PatchMapping("/messages/{messageId}")
     public ResponseEntity<Message> updateMessage (@PathVariable int messageId, @RequestBody Message newMessage)
     {
-
+        return null;
     }
 
-    @getMapping("/accounts/{accountIs}/messages")
-    public
+    @GetMapping("/accounts/{accountId}/messages")
+    public ResponseEntity<List<Message>> getmessageByAccountID(@PathVariable int accountId)
+    {
+        return null;
+    }
 }
