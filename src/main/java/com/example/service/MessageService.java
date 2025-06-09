@@ -3,7 +3,9 @@ package com.example.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.entity.Message;
 import com.example.repository.MessageRepository;
@@ -19,19 +21,20 @@ public class MessageService {
         return null;
     }
 
-    public List<Message> getAllMessages()
+    public ResponseEntity<List<Message>> getAllMessages()
     {
-        return null;
+        return ResponseEntity.ok(messageRepo.findAll());
     }
 
-    public Message getmessageByID(int id)
+    public ResponseEntity<Message> getmessageByID(@PathVariable Integer checkId)
     {
-        return null;
+        return ResponseEntity.ok(messageRepo.findById(checkId).orElse(null));
     }
 
-    public List<Message> getAllMessagesById(int id)
+    public ResponseEntity<List<Message>> getAllMessagesById(@PathVariable Integer checkId)
     {
-        return null;
+        List<Message> messages = messageRepo.findByPostedBy(checkId);
+        return ResponseEntity.ok(messages);
     }
 
     public Message updateMessage(int id, String newMessage)
@@ -39,8 +42,15 @@ public class MessageService {
         return null;
     }
 
-    public Message deleteMessage(int id)
+    public ResponseEntity<Object> deleteMessage(@PathVariable Integer checkId)
     {
-        return null;
+        boolean isThere = messageRepo.existsById(checkId);
+
+        if(isThere)
+        {
+            messageRepo.deleteById(checkId);
+            return ResponseEntity.ok(1);
+        }
+        return ResponseEntity.ok().build();
     }
 }

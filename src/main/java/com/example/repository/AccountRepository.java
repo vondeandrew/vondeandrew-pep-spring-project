@@ -9,4 +9,6 @@ import com.example.entity.Account;
 public interface AccountRepository extends JpaRepository<Account, Integer>{
 
     Account findByUsername(String user);
+
+    boolean existsByUsername(String user);
 }
