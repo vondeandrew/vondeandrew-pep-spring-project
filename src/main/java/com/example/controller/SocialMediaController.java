@@ -2,6 +2,7 @@ package com.example.controller;
 
 import javax.websocket.server.PathParam;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.entity.Account;
 import com.example.entity.Message;
+import com.example.repository.AccountRepository;
+import com.example.repository.MessageRepository;
 
 import java.util.List;
 import ch.qos.logback.core.joran.spi.DefaultClass;
@@ -25,6 +28,12 @@ import ch.qos.logback.core.joran.spi.DefaultClass;
  */
 @RestController
 public class SocialMediaController {
+
+    @Autowired
+    private AccountRepository accountRepo;
+
+    @Autowired
+    private MessageRepository messageRepo;
 
     @GetMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account account) {
@@ -45,19 +54,23 @@ public class SocialMediaController {
 
     @GetMapping("/messages")
     public ResponseEntity<List<Message>> getAllMessages() {
-        return null;
+        return ResponseEntity.ok(messageRepo.findAll());
     }
 
     @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getmessageByID(@PathVariable int messageId)
     {
-        return null;
+        return messageRepo.findById(messageId).map(ResponseEntity::ok).orElse(null);
     }
 
     @DeleteMapping("/messages/{messageId}")
-    public ResponseEntity<Message> deleteMessage(@PathVariable int messageId)
+    public ResponseEntity<Integer> deleteMessage(@PathVariable int messageId)
     {
-        return null;
+        if(!messageRepo.existsById(messageId))
+            return ResponseEntity.ok(0);
+
+        messageRepo.deleteById(messageId);
+        return ResponseEntity.ok(1);
     }
 
     @PatchMapping("/messages/{messageId}")
@@ -69,6 +82,6 @@ public class SocialMediaController {
     @GetMapping("/accounts/{accountId}/messages")
     public ResponseEntity<List<Message>> getmessageByAccountID(@PathVariable int accountId)
     {
-        return null;
+        return ResponseEntity.ok(messageRepo.findByPostedBy(accountId));
     }
 }
