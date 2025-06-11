@@ -29,18 +29,18 @@ public class AccountService {
         return accountRepo.save(account);
     }
 
-    public ResponseEntity<Account> login(String user, String password)
+    public boolean login(String user, String password)
     {
         Account exists = accountRepo.findByUsername(user);
         if(exists != null && exists.getPassword().equals(password))
         {
-            return ResponseEntity.ok(exists);
+            return true;
         }
-        return ResponseEntity.status(400).build();
+        return false;
     }
 
-    public boolean existsById(int id)
+    public boolean existsByUser(String username)
     {
-        return false;
+        return accountRepo.existsByUsername(username);
     }
 }

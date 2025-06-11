@@ -16,6 +16,7 @@ import com.example.entity.Account;
 import com.example.entity.Message;
 import com.example.repository.AccountRepository;
 import com.example.repository.MessageRepository;
+import com.example.service.AccountService;
 import com.example.service.MessageService;
 
 import java.util.List;
@@ -41,43 +42,43 @@ public class SocialMediaController {
     @Autowired
     private MessageService messageSer;
 
-    @GetMapping("/register")
+    @Autowired 
+    private AccountService accountSer;
+
+    @PostMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account account) {
-        String testUser = account.getUsername();
-        String testPass = account.getPassword();
-        if(testUser == null || testUser.isBlank() || testPass == null || testPass.isBlank())
+
+        if(accountSer.existsByUser(account.getUsername()))
         {
-            return ResponseEntity.status(400).build();
+            return ResponseEntity.status(409).build();
         }
 
-        if(accountRepo.findByUsername(testUser) != null)
+        Account test = accountSer.insertAccount(account);
+
+        if(test != null)
         {
-            return ResponseEntity.status(400).build();
+            return ResponseEntity.ok(test);
         }
-        return ResponseEntity.ok(accountRepo.save(account));
+
+        return ResponseEntity.status(400).build();
     }
 
     @PostMapping("/login")
     public ResponseEntity<Account> login(@RequestBody Account loginInfo)
     {
-        Account exists = accountRepo.findByUsername(loginInfo.getUsername());
-        if(exists != null && exists.getPassword().equals(loginInfo.getPassword()))
+        boolean succes = accountSer.login(loginInfo.getUsername(), loginInfo.getPassword());
+        if(succes)
         {
-            return ResponseEntity.ok(exists);
+            Account returnAccount = accountRepo.findByUsername(loginInfo.getUsername());
+            return ResponseEntity.ok(returnAccount);
         }
-        return ResponseEntity.status(400).build();
+        return ResponseEntity.status(401).build();
     }
 
     @PostMapping("/messages")
     public ResponseEntity<Message> creatMessage(@RequestBody Message message)
     {
-        String test = message.getMessageText();
-        if(test == null || test.isBlank()
-    || test.length() > 255 || !accountRepo.existsById(message.getPostedBy()))
-    {
-        return ResponseEntity.status(400).build();
-    }
-        return ResponseEntity.ok(messageRepo.save(message));
+        return messageSer.insertMessage(message);
     }
 
     @GetMapping("/messages")
@@ -94,10 +95,10 @@ public class SocialMediaController {
     @DeleteMapping("/messages/{messageId}")
     public ResponseEntity<Integer> deleteMessage(@PathVariable int messageId)
     {
-        if(!messageSer.deleteMessage(messageId))
-            return ResponseEntity.status(200).build();
-
-        //messageRepo.deleteById(messageId);
+        if(messageSer.deleteMessage(messageId))
+        {
+            return ResponseEntity.ok(1);
+        }
         return ResponseEntity.status(200).build();
     }
 
@@ -107,20 +108,12 @@ public class SocialMediaController {
         String test = newMessage.getMessageText();
         Message testMessage = null;
 
-        if(test == null || test.isBlank() || test.length() > 255) {
-            return ResponseEntity.status(400).build();
-        }
-
-        return messageRepo.findById(messageId).map(exists -> {
-            exists.setMessageText(newMessage.getMessageText());
-            messageRepo.save(exists);
-            return ResponseEntity.ok(1);
-        }).orElse(ResponseEntity.status(400).build());
+        return messageSer.updateMessage(messageId, test);
     }
 
     @GetMapping("/accounts/{accountId}/messages")
     public ResponseEntity<List<Message>> getmessageByAccountID(@PathVariable int accountId)
     {
-        return ResponseEntity.ok(messageRepo.findByPostedBy(accountId));
+        return ResponseEntity.ok(messageSer.getAllMessagesById(accountId));
     }
 }

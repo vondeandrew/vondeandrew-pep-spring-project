@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import com.example.entity.Message;
+import com.example.repository.AccountRepository;
 import com.example.repository.MessageRepository;
 
 @Service
@@ -17,9 +18,18 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepo;
 
-    public Message insertMessage(Message newMessage)
+    @Autowired
+    private AccountRepository accountRepo;
+
+    public ResponseEntity<Message> insertMessage(Message message)
     {
-        return null;
+        String test = message.getMessageText();
+        if(test == null || test.isBlank()
+    || test.length() > 255 || !accountRepo.existsById(message.getPostedBy()))
+    {
+        return ResponseEntity.status(400).build();
+    }
+        return ResponseEntity.ok(messageRepo.save(message));
     }
 
     public List<Message> getAllMessages()
@@ -38,16 +48,20 @@ public class MessageService {
         return messages;
     }
 
-    public Message updateMessage(int id, String newMessage)
+    public ResponseEntity<Integer> updateMessage(int id, String newMessage)
     {
-        Optional<Message> opMess = messageRepo.findById(id);
-        if(opMess.isPresent())
-        {
-            Message message = opMess.get();
-            message.setMessageText(newMessage);
-            return messageRepo.save(message);
+        String test = newMessage;
+        Message testMessage = null;
+
+        if(test == null || test.isBlank() || test.length() > 255) {
+            return ResponseEntity.status(400).build();
         }
-        return null;
+
+        return messageRepo.findById(id).map(exists -> {
+            exists.setMessageText(newMessage);
+            messageRepo.save(exists);
+            return ResponseEntity.ok(1);
+        }).orElse(ResponseEntity.status(400).build());
     }
 
     public boolean deleteMessage(@PathVariable Integer checkId)
