@@ -16,8 +16,11 @@ import com.example.entity.Account;
 import com.example.entity.Message;
 import com.example.repository.AccountRepository;
 import com.example.repository.MessageRepository;
+import com.example.service.MessageService;
 
 import java.util.List;
+import java.util.Optional;
+
 import ch.qos.logback.core.joran.spi.DefaultClass;
 
 /**
@@ -35,48 +38,84 @@ public class SocialMediaController {
     @Autowired
     private MessageRepository messageRepo;
 
+    @Autowired
+    private MessageService messageSer;
+
     @GetMapping("/register")
     public ResponseEntity<Account> register(@RequestBody Account account) {
-        return null;
+        String testUser = account.getUsername();
+        String testPass = account.getPassword();
+        if(testUser == null || testUser.isBlank() || testPass == null || testPass.isBlank())
+        {
+            return ResponseEntity.status(400).build();
+        }
+
+        if(accountRepo.findByUsername(testUser) != null)
+        {
+            return ResponseEntity.status(400).build();
+        }
+        return ResponseEntity.ok(accountRepo.save(account));
     }
 
     @PostMapping("/login")
     public ResponseEntity<Account> login(@RequestBody Account loginInfo)
     {
-        return null;
+        Account exists = accountRepo.findByUsername(loginInfo.getUsername());
+        if(exists != null && exists.getPassword().equals(loginInfo.getPassword()))
+        {
+            return ResponseEntity.ok(exists);
+        }
+        return ResponseEntity.status(400).build();
     }
 
     @PostMapping("/messages")
     public ResponseEntity<Message> creatMessage(@RequestBody Message message)
     {
-        return null;
+        String test = message.getMessageText();
+        if(test == null || test.isBlank()
+    || test.length() > 255 || !accountRepo.existsById(message.getPostedBy()))
+    {
+        return ResponseEntity.status(400).build();
+    }
+        return ResponseEntity.ok(messageRepo.save(message));
     }
 
     @GetMapping("/messages")
     public ResponseEntity<List<Message>> getAllMessages() {
-        return ResponseEntity.ok(messageRepo.findAll());
+        return ResponseEntity.ok(messageSer.getAllMessages());
     }
 
     @GetMapping("/messages/{messageId}")
     public ResponseEntity<Message> getmessageByID(@PathVariable int messageId)
     {
-        return messageRepo.findById(messageId).map(ResponseEntity::ok).orElse(null);
+        return ResponseEntity.ok(messageSer.getmessageByID(messageId));
     }
 
     @DeleteMapping("/messages/{messageId}")
     public ResponseEntity<Integer> deleteMessage(@PathVariable int messageId)
     {
-        if(!messageRepo.existsById(messageId))
-            return ResponseEntity.ok(0);
+        if(!messageSer.deleteMessage(messageId))
+            return ResponseEntity.status(200).build();
 
-        messageRepo.deleteById(messageId);
-        return ResponseEntity.ok(1);
+        //messageRepo.deleteById(messageId);
+        return ResponseEntity.status(200).build();
     }
 
     @PatchMapping("/messages/{messageId}")
-    public ResponseEntity<Message> updateMessage (@PathVariable int messageId, @RequestBody Message newMessage)
+    public ResponseEntity<Integer> updateMessage (@PathVariable int messageId, @RequestBody Message newMessage)
     {
-        return null;
+        String test = newMessage.getMessageText();
+        Message testMessage = null;
+
+        if(test == null || test.isBlank() || test.length() > 255) {
+            return ResponseEntity.status(400).build();
+        }
+
+        return messageRepo.findById(messageId).map(exists -> {
+            exists.setMessageText(newMessage.getMessageText());
+            messageRepo.save(exists);
+            return ResponseEntity.ok(1);
+        }).orElse(ResponseEntity.status(400).build());
     }
 
     @GetMapping("/accounts/{accountId}/messages")

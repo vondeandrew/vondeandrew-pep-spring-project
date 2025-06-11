@@ -1,6 +1,7 @@
 package com.example.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,36 +22,43 @@ public class MessageService {
         return null;
     }
 
-    public ResponseEntity<List<Message>> getAllMessages()
+    public List<Message> getAllMessages()
     {
-        return ResponseEntity.ok(messageRepo.findAll());
+        return messageRepo.findAll();
     }
 
-    public ResponseEntity<Message> getmessageByID(@PathVariable Integer checkId)
+    public Message getmessageByID(@PathVariable Integer checkId)
     {
-        return ResponseEntity.ok(messageRepo.findById(checkId).orElse(null));
+        return messageRepo.findById(checkId).orElse(null);
     }
 
-    public ResponseEntity<List<Message>> getAllMessagesById(@PathVariable Integer checkId)
+    public List<Message> getAllMessagesById(@PathVariable Integer checkId)
     {
         List<Message> messages = messageRepo.findByPostedBy(checkId);
-        return ResponseEntity.ok(messages);
+        return messages;
     }
 
     public Message updateMessage(int id, String newMessage)
     {
+        Optional<Message> opMess = messageRepo.findById(id);
+        if(opMess.isPresent())
+        {
+            Message message = opMess.get();
+            message.setMessageText(newMessage);
+            return messageRepo.save(message);
+        }
         return null;
     }
 
-    public ResponseEntity<Object> deleteMessage(@PathVariable Integer checkId)
+    public boolean deleteMessage(@PathVariable Integer checkId)
     {
         boolean isThere = messageRepo.existsById(checkId);
 
         if(isThere)
         {
             messageRepo.deleteById(checkId);
-            return ResponseEntity.ok(1);
+            return true;
         }
-        return ResponseEntity.ok().build();
+        return false;
     }
 }
